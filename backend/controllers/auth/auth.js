@@ -1,107 +1,66 @@
-const jwt = require('jsonwebtoken')
+const express = require('express')
 const bcrypt = require('bcryptjs')
-const asyncHandler = require('express-async-handler')
 const User = require('../../models/Users')
+const UserRepo = require('../../repository/user_repo')
+const asyncHandler = require('express-async-handler')
 
 // @desc Register User
 // @route POST api/user/
 // @access Public
 
-const registerUser = asyncHandler(async (req, res) =>{
-    const {name, email, password} = req.body
+const registerUser = async (req, res, next) =>{
+    const user = new User(
+        0,
+        req.body.firstName,
+        req.body.lastName, 
+        req.body.email,
+        req.body.password,
+        req.body.designation
+    )
 
-    if(!name || !email || !password){
-        res.status(400).json(
-            {
-                msg: 'Invalid authentication',
-            }
-        )
+    if(!user.isValid()){
+       return next(new Error(401))
     }
-
-    
+        
     //check if user exists
-    const userExists =  await User.findOne({email})
-
-    if(userExists){
-        res.status(400).json(
-            {
-                msg: 'Invalid authentication',
-            }
-        )
+    if(await UserRepo.userExists(user.email)){
+        return next(new Error(401))
     }
 
     //Hash password
     const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password, salt)
+    user.password = await bcrypt.hash(user.password, salt)
 
-    // Create User
-    const user = await User.create({
-        name,
-        email,
-        password:hashedPassword
+    UserRepo.registerUser(user)
+
+    res.status(201).json({
+        'msg': 'Successfully registered'
     })
-
-    if(user) {
-        res.status(201).json({
-            _id: user.id,
-            name: user.name,
-            email: user.email,
-        })
-    } else{
-        res.status(400).json(
-            {
-                msg: 'Invalid authentication',
-            }
-        )
-    }
-
-}) 
+    
+}
  
 // @desc Authenticate a user
 // @route POST api/user/login
 // @access Public
 
-const loginUser = asyncHandler(async (req, res) =>{
+const loginUser = async (req, res, next) =>{
 
     const {email, password} = req.body
-    // Check for user email
-    const user = await User.findOne({email})
+
+    const user = await UserRepo.findUser(email)
 
     if(user && (await bcrypt.compare(password, user.password))){
         res.json({
             _id: user.id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id)
+           msg: `Welcome ${user.firstName}`
         })
     } else{
-        res.status(400).json(
-            {
-                msg: 'Invalid authentication',
-            }
-        )
+        next(new Error(401))
     }
 
-}) 
-
-// @desc Get user data
-// @route GET api/user/me
-// @access Private
-
-const getMyData = asyncHandler(async (req, res) =>{
-
-    const {_id, name, email} =  await User.findById(req.user.id)
-
-    res.status(200).json({
-        id:_id,
-        name,
-        email,
-    })
-
-}) 
+}
 
 module.exports = {
     registerUser,
-    loginUser,
-    getMyData
+    loginUser
 }

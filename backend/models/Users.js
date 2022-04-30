@@ -1,33 +1,32 @@
-const mongoose = require('mongoose')
 
-const userSchema = mongoose.Schema({
-    firstName:{
-        type: String,
-        required: [true, 'Please add a first name']
-    },
-    lastName:{
-        type: String,
-        required: [true, 'Please add a last name']
-    },
-    employeeID:{
-        type: String,
-        required: [true, 'Please add a empolyee ID']
-    },
-    email:{
-        type: String,
-        required: [true, 'Please add an email'],
-        unique: true
-    },
-    password:{
-        type: String,
-        required: [true, 'Please add a password']
-    },
-    designation:{
-        type: String,
-        required: [true, 'Please add a password']
+class User {
+    constructor(
+        id,
+        firstName,
+        lastName,
+        email,
+        password,
+        designation
+    ){
+        this.id = id
+        this.firstName = firstName
+        this.lastName = lastName
+        this.email = email
+        this.password = password
+        this.designation = designation
+        
     }
-},{
-    timestamps:true
-})
 
-module.exports = mongoose.model('user', userSchema)
+    // Check user fields are valid or not
+    isValid(){
+        if(!this.firstName || !this.lastName || !this.password){
+            return false
+        } else {
+            return true
+        }
+    }
+
+
+}
+
+module.exports = User
