@@ -8,7 +8,7 @@ const asyncHandler = require('express-async-handler')
 // @route POST api/user/
 // @access Public
 
-const registerUser = async (req, res, next) =>{
+const registerUser = asyncHandler(async (req, res, next) =>{
     const user = new User(
         0,
         req.body.firstName,
@@ -19,12 +19,12 @@ const registerUser = async (req, res, next) =>{
     )
 
     if(!user.isValid()){
-       return next(new Error(401))
+       return next(new Error(400))
     }
         
     //check if user exists
     if(await UserRepo.userExists(user.email)){
-        return next(new Error(401))
+        return next(new Error(400))
     }
 
     //Hash password
@@ -33,17 +33,17 @@ const registerUser = async (req, res, next) =>{
 
     UserRepo.registerUser(user)
 
-    res.status(201).json({
+    res.status(200).json({
         'msg': 'Successfully registered'
     })
     
-}
+})
  
 // @desc Authenticate a user
 // @route POST api/user/login
 // @access Public
 
-const loginUser = async (req, res, next) =>{
+const loginUser = asyncHandler(async (req, res, next) =>{
 
     const {email, password} = req.body
 
@@ -55,10 +55,10 @@ const loginUser = async (req, res, next) =>{
            msg: `Welcome ${user.firstName}`
         })
     } else{
-        next(new Error(401))
+        next(new Error(400))
     }
 
-}
+})
 
 module.exports = {
     registerUser,

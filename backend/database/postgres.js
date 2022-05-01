@@ -9,7 +9,7 @@ const pool = new Pool({
 })
 
 pool.query('select now()', (err, res) => {
-    console.log('Database Started !!!')
+    console.log('Database Started Successfully')
 })
 
 module.exports = pool

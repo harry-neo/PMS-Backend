@@ -20,11 +20,11 @@ app.use('/auth', require('./routes/userRoutes'))
 // Common error handler
 app.use((err, req, res, next) =>{
       switch(err.message){
-          case '401':
-              res.status(401).send({msg: 'Invalid Authentication'})
+          case '400':
+              res.status(400).send({msg: 'Invalid Authentication'})
               break;
             default:
-                res.send({})
+                res.status(500).send({msg: 'Internal Server Error'})
       }
 })
 
